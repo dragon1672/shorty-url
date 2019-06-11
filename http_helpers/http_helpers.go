@@ -19,7 +19,7 @@ func PrintError(code int, message string, w http.ResponseWriter) {
 }
 
 func PrintText(message string, w http.ResponseWriter) {
-	_, err  := w.Write([]byte(message))
+	_, err := w.Write([]byte(message))
 	if err != nil {
 		glog.Infof("error when writing response: %v", err)
 	}

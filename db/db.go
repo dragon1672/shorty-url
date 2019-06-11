@@ -1,15 +1,13 @@
 package db
 
-
 type Status struct {
-	Success bool
+	Success   bool
 	ErrorText string
 }
 
-type Database interface  {
+type Database interface {
 	Init()
 	Get(entry string) (result string, exists bool)
 	AddMapping(from, to string) error
 	RemoveEntry(entry string) error
 }
-

@@ -78,35 +78,35 @@ func Test_inMemDb_AddMapping(t *testing.T) {
 		wantState map[string]string
 	}{
 		{
-			name:      "first add",
-			existing:  map[string]string{},
-			args:      args{"a", "b"},
-			wantErr:   false,
+			name:     "first add",
+			existing: map[string]string{},
+			args:     args{"a", "b"},
+			wantErr:  false,
 			wantState: map[string]string{
 				"a": "b",
 			},
 		},
 		{
-			name:      "unique add",
-			existing:  map[string]string{
-				"existing_field":   "existing_value",
+			name: "unique add",
+			existing: map[string]string{
+				"existing_field": "existing_value",
 			},
-			args:      args{"a", "b"},
-			wantErr:   false,
+			args:    args{"a", "b"},
+			wantErr: false,
 			wantState: map[string]string{
-				"existing_field":   "existing_value",
-				"a": "b",
+				"existing_field": "existing_value",
+				"a":              "b",
 			},
 		},
 		{
-			name:      "collision add",
-			existing:  map[string]string{
-				"existing_field":   "existing_value",
+			name: "collision add",
+			existing: map[string]string{
+				"existing_field": "existing_value",
 			},
-			args:      args{"existing_field", "b"},
-			wantErr:   true,
+			args:    args{"existing_field", "b"},
+			wantErr: true,
 			wantState: map[string]string{
-				"existing_field":   "existing_value",
+				"existing_field": "existing_value",
 			},
 		},
 	}
@@ -127,39 +127,39 @@ func Test_inMemDb_AddMapping(t *testing.T) {
 
 func Test_inMemDb_RemoveEntry(t *testing.T) {
 	tests := []struct {
-		name    string
+		name      string
 		existing  map[string]string
-		input string
-		wantErr bool
+		input     string
+		wantErr   bool
 		wantState map[string]string
 	}{
 		{
-			name:"remove from empty",
+			name:      "remove from empty",
 			existing:  map[string]string{},
-			input:"toRemove",
+			input:     "toRemove",
 			wantErr:   false,
 			wantState: map[string]string{},
 		},
 		{
-			name:"remove only field",
-			existing:  map[string]string{
+			name: "remove only field",
+			existing: map[string]string{
 				"toRemove": "sol",
 			},
-			input:"toRemove",
+			input:     "toRemove",
 			wantErr:   false,
 			wantState: map[string]string{},
 		},
 		{
-			name:"remove one of many",
-			existing:  map[string]string{
-				"toRemove": "sol",
+			name: "remove one of many",
+			existing: map[string]string{
+				"toRemove":         "sol",
 				"existing_field":   "existing_value",
 				"existing_field_1": "existing_value_1",
 				"existing_field_2": "existing_value_2",
 				"existing_field_3": "existing_value_3",
 			},
-			input:"toRemove",
-			wantErr:   false,
+			input:   "toRemove",
+			wantErr: false,
 			wantState: map[string]string{
 				"existing_field":   "existing_value",
 				"existing_field_1": "existing_value_1",

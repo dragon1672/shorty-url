@@ -9,48 +9,55 @@ import (
 	"shorty-url/http_helpers"
 )
 
-type App struct {
-	Router *mux.Router
-	DB     db.Database
+type ShortyServer struct {
+	router   *mux.Router
+	database db.Database
 }
 
-func (a *App) Init() {
-	glog.Info("initlizing DB")
-	a.DB.Init()
+func CreateServer(database db.Database) ShortyServer {
+	s := ShortyServer{}
+	s.database = database
+	return s
+}
+
+func (a *ShortyServer) Init() {
+	glog.Info("initializing database")
+	a.database.Init()
 	glog.Info("registering server paths")
-	a.Router.HandleFunc("/", a.Home).Methods("GET")
-	a.Router.HandleFunc("/{p}", a.Redirect).Methods("GET")
-	a.Router.HandleFunc("/shorten", a.Shorten).Methods("POST")
+	a.router = mux.NewRouter()
+	a.router.HandleFunc("/", a.Home).Methods("GET")
+	a.router.HandleFunc("/register", a.Register).Methods("POST")
+	a.router.HandleFunc("/{p}", a.Redirect).Methods("GET")
 }
 
 //Run the app
-func (a *App) Run(port string) {
-	glog.Infof("serving on 127.0.0.1%s",port)
-	glog.Fatal(http.ListenAndServe(port, a.Router))
+func (a *ShortyServer) Run(port string) {
+	glog.Infof("serving on 127.0.0.1%s", port)
+	glog.Fatal(http.ListenAndServe(port, a.router))
 }
 
-func (a *App) Home(w http.ResponseWriter, r *http.Request) {
+func (a *ShortyServer) Home(w http.ResponseWriter, r *http.Request) {
 	glog.Info("Home Page")
 	http_helpers.PrintText(`
-<html>
-<head></head>
-<body>
-<form action="shorten" method="post">
-<input name="to" placeholder="destination URL"/>
-<input name="from" placeholder="shortened URL"/>
-<button type="submit" value="Submit"/>
-</form>
-</body>
-</html>
-`, w)
+	<html lang="en">
+	<head><title>Simple Shorty</title></head>
+	<body>
+	<form action="register" method="post">
+	<input name="to" placeholder="destination URL"/>
+	<input name="from" placeholder="shortened URL"/>
+	<button type="submit" value="Submit"/>
+	</form>
+	</body>
+	</html>
+	`, w)
 }
 
-func (a *App) Shorten(w http.ResponseWriter, r *http.Request) {
+func (a *ShortyServer) Register(w http.ResponseWriter, r *http.Request) {
 
 	// Call ParseForm() to parse the raw query and update r.PostForm and r.Form.
 	if err := r.ParseForm(); err != nil {
-		glog.Errorf( "ParseForm() err: %v", err)
-		http_helpers.PrintError(http.StatusBadRequest, "Error parsing request",w)
+		glog.Errorf("ParseForm() err: %v", err)
+		http_helpers.PrintError(http.StatusBadRequest, "Error parsing request", w)
 		return
 	}
 	from := r.FormValue("from")
@@ -62,12 +69,12 @@ func (a *App) Shorten(w http.ResponseWriter, r *http.Request) {
 		http_helpers.PrintError(http.StatusBadRequest, "Invalid URL", w)
 		return
 	}
-	if _,exists:= a.DB.Get(from); exists {
+	if _, exists := a.database.Get(from); exists {
 		glog.Infof("%s already exists", from)
 		http_helpers.PrintError(http.StatusBadRequest, "URL Already Mapped", w)
 		return
 	}
-	if err := a.DB.AddMapping(from, to); err != nil {
+	if err := a.database.AddMapping(from, to); err != nil {
 		glog.Errorf("Encountered following error when adding mapping from: %s to: %s with error: %v", from, to, err)
 		http_helpers.PrintError(http.StatusInternalServerError, "Internal Error", w)
 		return
@@ -77,10 +84,10 @@ func (a *App) Shorten(w http.ResponseWriter, r *http.Request) {
 	http_helpers.PrintText(fmt.Sprintf("Successfully registerd %s to direct to %s", from, to), w)
 }
 
-func (a *App) Redirect(w http.ResponseWriter, r *http.Request) {
+func (a *ShortyServer) Redirect(w http.ResponseWriter, r *http.Request) {
 	from := mux.Vars(r)["p"]
 
-	if redirectUrl, ok := a.DB.Get(from); ok {
+	if redirectUrl, ok := a.database.Get(from); ok {
 		http_helpers.Redirect(redirectUrl, w, r)
 		return
 	} else {

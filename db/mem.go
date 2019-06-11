@@ -17,19 +17,19 @@ func (db *inMemDb) Init() {
 }
 
 func (db *inMemDb) Get(entry string) (result string, exists bool) {
-	result,exists = db.m[entry]
+	result, exists = db.m[entry]
 	return result, exists
 
 }
 
 func (db *inMemDb) AddMapping(from, to string) error {
-	if _,exists := db.m[from]; exists {
+	if _, exists := db.m[from]; exists {
 		return errors.Errorf("%s already has a mapping", from)
 	}
 	db.m[from] = to
 	return nil
 }
 func (db *inMemDb) RemoveEntry(entry string) error {
-	delete(db.m,entry)
+	delete(db.m, entry)
 	return nil
 }
